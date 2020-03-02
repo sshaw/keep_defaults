@@ -12,20 +12,19 @@ class OrderItem < ApplicationRecord
 end
 
 class Order < ApplicationRecord
-  # Has columns: total, subtotal, and taxes are all numeric(11,2) not null default 0
+  # Has columns: total and taxes, both numeric(11,2) not null default 0
   # Validation etc...
 
   has_many :order_items
 
   def total
-    order_items.sum(&:total) + subtotal + taxes
+    order_items.sum(&:total) + taxes
   end
 end
 ```
 
 The columns have a default value of `0`, but the attributes can still be set to `nil`.
 This can make for code that is far from bulletproof:
-
 ```rb
 o = Order.new
 o.total  # 0
@@ -35,20 +34,23 @@ o.total  # 💥 TypeError: nil can't be coerced into Fixnum
 
 To fix you can do something like:
 ```rb
+class Order < ApplicationRecord
+  def total
+    order_items.sum(&:total) + taxes.to_f
+  end
+end
+```
+
+But `OrderItem#total` can be set to `nil` too. You can do:
+```rb
 class OrderItem < ApplicationRecord
   def total
     super || 0
   end
 end
-
-class Order < ApplicationRecord
-  def total
-    order_items.sum(&:total).to_f + subtotal.to_f + taxes.to_f
-  end
-end
 ```
 
-But what about the other contexts in which these can be called or the other attributes you have? This can get tedious.
+But what about the other contexts in which these can be called or the other attributes you may have? This can get tedious.
 
 With Keep Defaults:
 ```rb
