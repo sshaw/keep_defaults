@@ -48,7 +48,7 @@ class Order < ApplicationRecord
 end
 ```
 
-But what about the other context in which these can be called or even other attributes you have? This can get tedious.
+But what about the other contexts in which these can be called or the other attributes you have? This can get tedious.
 
 With Keep Defaults:
 ```rb
