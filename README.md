@@ -101,6 +101,17 @@ class Order < ApplicationRecord
 end
 ```
 
+### Using With an Existing Column
+
+To ensure that an attribute always returns its default value you must make sure its DB column does not allow `null` and has a default.
+
+For example, given the column `orders.taxes` that does not meet these requirements, you can add a migration containing the following:
+```rb
+def change
+  change_column :orders, :taxes, :integer, :null => false, :default => 0
+end
+```
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
