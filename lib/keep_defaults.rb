@@ -9,7 +9,7 @@ module KeepDefaults
       klass.module_eval %{
         include Module.new {
           def #{name}=(value)
-            return if value.nil?
+            value = self.class.column_defaults["#{name}"] if value.nil? && !self.class.columns_hash["#{name}"].null
             super value
           end
         }

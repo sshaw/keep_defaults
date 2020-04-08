@@ -133,5 +133,35 @@ RSpec.describe KeepDefaults do
         keeps_defaults(f)
       end
     end
+
+    context "given an existing record set to a non-default value" do
+      before { @f = Foo.create!(:bar => "sshaw!", :foo => 99, :baz => "zzzzzzzz") }
+
+      context "setting attributes to nil via the setter method" do
+        it "sets them to the defaults" do
+          @f.foo = nil
+          @f.bar = nil
+
+          keeps_defaults(@f)
+        end
+      end
+
+      context "setting attributes to nil via the bracket method" do
+        it "sets them to the defaults" do
+          @f[:foo] = nil
+          @f[:bar] = nil
+
+          keeps_defaults(@f)
+        end
+      end
+
+      context "setting attributes to nil via the attributes method" do
+        it "sets them to the defaults" do
+          @f.attributes = { "foo" => nil, "bar" => nil }
+
+          keeps_defaults(@f)
+        end
+      end
+    end
   end
 end
