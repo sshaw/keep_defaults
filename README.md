@@ -69,7 +69,7 @@ o.total  # 0
 o.taxes  # 0
 ```
 
-Now if an attribute is set to `nil` it will retain its default value instead.
+Now if an attribute is set to `nil` it will retain —or be returned to— its default value instead.
 
 ## Installation
 
@@ -122,7 +122,7 @@ end
 
 #### Classes That Explicitly Set `table_name` **and** Have an Ancestor Class That `include`s `KeepDefaults`
 
-`include KeepDefaults` must be taken out if the ancestor classes in added to all the subclasses.
+In this case `include KeepDefaults` must be taken out of the ancestor classes in added to all the subclasses.
 
 ## License
 
