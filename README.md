@@ -55,6 +55,8 @@ But what about the other contexts in which these can be called or the other attr
 With Keep Defaults:
 ```rb
 class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+  # Must come after setting abstract_class
   include KeepDefaults
 end
 ```
@@ -89,6 +91,8 @@ To use everywhere add to `ApplicationRecord`:
 
 ```rb
 class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+  # Must come after setting abstract_class
   include KeepDefaults
 end
 ```
@@ -101,6 +105,8 @@ class Order < ApplicationRecord
 end
 ```
 
+If your class sets its table via `table_name` then `include KeepDefaults` must come after that.
+
 ### Using With an Existing Column
 
 To ensure that an attribute always returns its default value you must make sure its DB column does not allow `null` and has a default.
@@ -111,6 +117,12 @@ def change
   change_column :orders, :taxes, :integer, :null => false, :default => 0
 end
 ```
+
+### Known Issues
+
+#### Classes That Explicitly Set `table_name` **and** Have an Ancestor Class That `include`s `KeepDefaults`
+
+`include KeepDefaults` must be taken out if the ancestor classes in added to all the subclasses.
 
 ## License
 

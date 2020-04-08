@@ -1,20 +1,34 @@
 require "keep_defaults/version"
 
 module KeepDefaults
-  def self.included(klass)
-    klass.instance_eval do
-      column_defaults.each do |name, default|
-        next if default.nil? || columns_hash[name].null
+  INSTALL = ->(klass) do
+    klass.column_defaults.each do |name, default|
+      next if default.nil? || klass.columns_hash[name].null
 
-        # Use Module.new so classes can get this by calling super
-        module_eval %{
-          include Module.new {
-            def #{name}=(value)
-              return if value.nil?
-              super value
-            end
-          }
-        }, __FILE__, __LINE__ + 1
+      # Use Module.new so classes can get this by calling super
+      klass.module_eval %{
+        include Module.new {
+          def #{name}=(value)
+            return if value.nil?
+            super value
+          end
+        }
+      }, __FILE__, __LINE__ + 1
+    end
+  end
+
+  private_constant :INSTALL
+
+  def self.included(klass)
+    raise "KeepDefaults can only be used by ActiveRecord::Base subclasses" unless klass < ActiveRecord::Base
+
+    return INSTALL[klass] unless klass.abstract_class || klass.inspect =~ %r[\(Table doesn't exist\)\z]
+
+    klass.instance_eval do
+      def inherited(klass)
+        super
+
+        INSTALL[klass] if klass.descends_from_active_record?
       end
     end
   end

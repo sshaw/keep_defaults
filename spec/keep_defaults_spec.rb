@@ -14,6 +14,20 @@ ActiveRecord::Base.connection.create_table(:foo, :force => true) do |t|
   t.integer :zzz, :null => true, :default => 99
 end
 
+ActiveRecord::Base.connection.create_table(:bars, :force => true) do |t|
+  t.integer :foo, :null => false, :default => 0
+  t.string :bar, :null => false, :default => "foo"
+  t.integer :zzz, :null => true, :default => 99
+end
+
+class Abstract < ActiveRecord::Base
+  self.abstract_class = true
+  include KeepDefaults
+end
+
+class Bar < Abstract
+end
+
 class Foo < ActiveRecord::Base
   self.table_name = "foo"
   include KeepDefaults
@@ -28,6 +42,14 @@ class Foo < ActiveRecord::Base
 end
 
 RSpec.describe KeepDefaults do
+  def keeps_defaults(f)
+    expect(f.foo).to eq 0
+    expect(f.bar).to eq "foo"
+    expect(f[:foo]).to eq 0
+    expect(f[:bar]).to eq "foo"
+    expect(f.attributes).to include("foo" => 0, "bar" => "foo")
+  end
+
   context "given a not null column without a default" do
     it "allows it to be set to nil" do
       f = Foo.new
@@ -50,15 +72,17 @@ RSpec.describe KeepDefaults do
     end
   end
 
-  context "given a not null column with a default" do
-    def keeps_defaults(f)
-      expect(f.foo).to eq 0
-      expect(f.bar).to eq "foo"
-      expect(f[:foo]).to eq 0
-      expect(f[:bar]).to eq "foo"
-      expect(f.attributes).to include("foo" => 0, "bar" => "foo")
-    end
+  context "given a subclass whose superclass includes KeepsDefaults" do
+    it "keeps the defaults" do
+      f = Bar.new
+      f[:foo] = nil
+      f[:bar] = nil
 
+      keeps_defaults(f)
+    end
+  end
+
+  context "given a not null column with a default" do
     context "when the getter method is overridden" do
       it "keeps the defaults when super is called" do
         f = Foo.new(:overridden => nil)
@@ -104,8 +128,7 @@ RSpec.describe KeepDefaults do
     context "setting attributes to nil via the attributes method" do
       it "keeps the defaults" do
         f = Foo.new
-        f.attributes["foo"] = nil
-        f.attributes["bar"] = nil
+        f.attributes = { "foo" => nil, "bar" => nil }
 
         keeps_defaults(f)
       end
